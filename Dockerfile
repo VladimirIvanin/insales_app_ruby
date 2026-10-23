@@ -1,5 +1,8 @@
 # syntax=docker/dockerfile:1
-FROM ruby:4.0.8-alpine3.24 AS ruby
+FROM ruby:4.0.8-alpine3.24 AS base
+RUN apk add --no-cache tzdata
+
+FROM base AS ruby
 RUN apk add --no-cache build-base yaml-dev sqlite-dev git
 RUN gem install bundler -v 4.0.23 --no-document
 ENV BUNDLE_PATH=/usr/local/bundle
@@ -11,7 +14,7 @@ RUN bundle install
 RUN json_gem="$(bundle exec ruby -e 'print Gem::Specification.find_by_name("json").cache_file')" \
     && gem install --local "$json_gem" --install-dir /usr/local/bundle --no-document
 
-FROM ruby:4.0.8-alpine3.24 AS runtime
+FROM base AS runtime
 ENV BUNDLE_PATH=/usr/local/bundle
 COPY --from=gems /usr/local/bundle /usr/local/bundle
 RUN <<'SHELL'
