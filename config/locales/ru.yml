@@ -4,7 +4,8 @@ ru:
   dashboard:
     shop: Магазин
     insales_id: ID магазина
-    user_id: ID сотрудника
+    callback_user_id: ID сотрудника из callback
+    callback_identity: Данные сотрудника получены из callback InSales. Они не удостоверяют личность отдельно и не используются для персональных прав.
     probe: Проверить API
     result: Ответ API
     usage: Использование API

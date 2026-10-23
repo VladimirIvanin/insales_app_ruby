@@ -1,7 +1,10 @@
 #!/bin/sh
 set -eu
-bundle exec rspec
+mkdir -p tmp/check
+bundle exec rspec --format progress --format json --out tmp/check/rspec.json
 RAILS_ENV=test ruby -r ./spec/support/test_environment.rb bin/rails zeitwerk:check
 bundle exec rubocop
 bundle exec brakeman --no-pager
-bundle exec bundler-audit check --update
+if [ "${1:-}" != "--skip-audit" ]; then
+  bundle exec bundler-audit check --update
+fi

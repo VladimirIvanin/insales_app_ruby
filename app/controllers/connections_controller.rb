@@ -23,8 +23,8 @@ class ConnectionsController < ApplicationController
   end
 
   def callback
-    flow = params[:flow].presence
-    if flow && !flow.match?(/\A[1-9]\d{0,18}\z/)
+    flow = params[:flow]
+    if !flow.nil? && (!flow.is_a?(String) || !flow.match?(/\A[1-9]\d{0,18}\z/))
       raise Insales::Lifecycle::Failure.new(:invalid_challenge, 403)
     end
     challenge_id = flow || session[:challenge_id]
@@ -32,8 +32,10 @@ class ConnectionsController < ApplicationController
     unless challenge_id && browser_token
       raise Insales::Lifecycle::Failure.new(:invalid_challenge, 403)
     end
+    user_name = params[:user_name]
+    user_name = "" if user_name.nil?
     grant = lifecycle.complete_login(challenge_id: challenge_id, browser_token: browser_token,
-      token3: params.expect(:token3), user_email: params.fetch(:user_email) || "", user_name: params.fetch(:user_name, ""),
+      token3: params.expect(:token3), user_email: params.fetch(:user_email) || "", user_name: user_name,
       user_id: params.expect(:user_id), email_confirmed: params.expect(:email_confirmed))
     cookies.delete("login_#{flow}") if flow
     lifecycle.logout(session[:auth_token])

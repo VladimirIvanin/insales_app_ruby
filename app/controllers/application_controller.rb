@@ -15,17 +15,17 @@ class ApplicationController < ActionController::Base
 
     def lifecycle_error(error)
       response.headers["Retry-After"] = "60" if error.status == 503
-      render "shared/error", locals: { message: I18n.t("errors.#{error.code}") }, status: error.status
+      render "shared/error", formats: :html, locals: { message: I18n.t("errors.#{error.code}") }, status: error.status
     end
 
     def invalid_request
-      render "shared/error", locals: { message: I18n.t("errors.invalid_request") }, status: :bad_request
+      render "shared/error", formats: :html, locals: { message: I18n.t("errors.invalid_request") }, status: :bad_request
     end
 
     def require_session
       @context ||= lifecycle.authenticate(session[:auth_token])
       return if @context
       reset_session
-      render "shared/error", locals: { message: I18n.t("errors.session_required") }, status: :unauthorized
+      render "shared/error", formats: :html, locals: { message: I18n.t("errors.session_required") }, status: :unauthorized
     end
 end

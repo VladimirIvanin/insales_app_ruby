@@ -10,3 +10,9 @@ log/*
 coverage
 config/master.key
 config/credentials/
+
+.agents
+.codex
+.cursor
+
+/backups/

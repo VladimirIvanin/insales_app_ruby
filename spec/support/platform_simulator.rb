@@ -7,9 +7,9 @@ class PlatformSimulator
   attr_reader :url, :requests, :server
   attr_accessor :account_status, :account_body, :usage, :update_status, :delay, :truncate, :raw_account_body, :error_body, :retry_after
 
-  def initialize(id: 101, token: "install-a", user_email: "user@example.invalid", email_confirmed: "true")
+  def initialize(id: 101, token: "install-a", user_email: "user@example.invalid", user_name: "Тестовый сотрудник", email_confirmed: "true")
     @id = id
-    @login_fields = { "user_email" => user_email, "user_name" => "Тестовый сотрудник", "user_id" => "42", "email_confirmed" => email_confirmed }
+    @login_fields = { "user_email" => user_email, "user_name" => user_name, "user_id" => "42", "email_confirmed" => email_confirmed }
     @requests = Queue.new
     @usage = "1/300"
     @account_status = 200

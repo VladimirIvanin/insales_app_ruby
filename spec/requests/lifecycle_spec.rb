@@ -291,18 +291,26 @@ RSpec.describe "Жизненный цикл приложения", type: :reques
     4.times { |index| install(agent, token: "fake-#{index}", id: 999) }
     previous_ids = InstallationCandidate.ids
     stub_const("Insales::Lifecycle::ADMISSION_TIMEOUT", 0.05)
-    platform.delay = 0.3
-    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    platform.hold_account
+    pending = Thread.new do
+      ActiveRecord::Base.connection_pool.with_connection do
+        requester = browser
+        requester.get("/install", params: { shop: "shop-a.example.test", insales_id: 999, token: "overflow" })
+        requester.response.status
+      end
+    end
+    platform.wait_for_account
 
-    agent.get("/install", params: { shop: "shop-a.example.test", insales_id: 999, token: "overflow" })
-
-    expect(agent.response.status).to eq(503)
-    expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 0.25
+    expect(pending.join(2)).to eq(pending), "install still waits for the held API response"
+    expect(pending.value).to eq(503)
     expect(InstallationCandidate.ids).to eq(previous_ids)
     expect(platform.requests.size).to eq(1)
-    platform.delay = 0
+    platform.release_account
     travel 11.seconds
     sign_in(agent, platform)
+  ensure
+    platform.release_account if pending&.alive?
+    pending&.join(6)
   end
 
   it "не удаляет active при uninstall другого кандидата" do

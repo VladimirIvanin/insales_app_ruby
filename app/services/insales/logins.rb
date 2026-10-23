@@ -23,7 +23,7 @@ module Insales
 
     def complete_login(challenge_id:, browser_token:, token3:, user_email:, user_name:, user_id:, email_confirmed:)
       fields = { user_email: user_email, user_name: user_name, user_id: user_id, email_confirmed: email_confirmed }
-      id = Protocol.validate_user_fields!(**fields)
+      callback_user_id = Protocol.validate_user_fields!(**fields)
       Shop.transaction do
         challenge = LoginChallenge.find_by(id: challenge_id)
         raise Lifecycle::Failure.new(:invalid_challenge, 403) unless challenge
@@ -35,7 +35,7 @@ module Insales
           .where("expires_at > ?", Time.current).delete_all
         raise Lifecycle::Failure.new(:invalid_challenge, 403) unless consumed == 1
         token = SecureRandom.hex(32)
-        record = store.app_sessions.create!(generation: store.generation, user_id: id,
+        record = store.app_sessions.create!(generation: store.generation, callback_user_id: callback_user_id,
           token_digest: Digest::SHA256.hexdigest(token), last_seen_at: Time.current,
           expires_at: AppSession::ABSOLUTE_TIMEOUT.from_now)
         Lifecycle::Grant.new(token: token, session: record)

@@ -1,0 +1,68 @@
+#!/bin/bash
+set -euo pipefail
+image=${1:?Usage: bin/check-image IMAGE}
+work=$(mktemp -d)
+container=
+volume=
+cleanup() {
+  if [ -n "$container" ]; then
+    docker logs "$container" > "$work/server.log" 2>&1 || true
+    if [ "${failed:-1}" = 1 ]; then cat "$work/server.log"; fi
+    docker rm -f "$container" >/dev/null
+  fi
+  if [ -n "$volume" ]; then docker volume rm "$volume" >/dev/null; fi
+  rm -rf "$work"
+}
+trap cleanup EXIT
+
+docker run --rm "$image" ruby -e '
+  %w[.agents .codex .cursor].each do |directory|
+    abort "Local tooling found in image: #{directory}" if File.exist?(File.join("/app", directory))
+  end
+'
+{
+  echo RAILS_ENV=production
+  echo APP_BASE_URL=https://app.example.test
+  echo ALLOWED_SHOPS=shop-a.example.test
+  echo INSALES_APP_ID=smoke-app
+  echo INSALES_APP_SECRET=synthetic-smoke-secret
+  echo APP_DB=/app/storage/app.sqlite3
+  for key in SECRET_KEY_BASE AR_ENCRYPTION_PRIMARY_KEY AR_ENCRYPTION_KEY_DERIVATION_SALT; do
+    echo "$key=$(openssl rand -hex 32)"
+  done
+} > "$work/env"
+chmod 600 "$work/env"
+volume=$(docker volume create)
+container=$(docker run -d --env-file "$work/env" -v "$volume:/app/storage" -p 127.0.0.1::8765 "$image")
+port=$(docker port "$container" 8765/tcp | sed 's/.*://')
+origin="http://127.0.0.1:$port"
+wait_for_health() {
+  for attempt in {1..60}; do
+    if curl --max-time 2 --silent --fail "$origin/healthz" > /dev/null; then return; fi
+    sleep 1
+  done
+  echo "Production health timed out" >&2
+  return 1
+}
+wait_for_health
+[ "$(curl -s -o /dev/null -w '%{http_code}' "$origin/")" = 403 ]
+[ "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: app.example.test' "$origin/")" = 301 ]
+[ "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: app.example.test' -H 'X-Forwarded-Proto: https' \
+  "$origin/install?shop=shop-a.example.test&insales_id=101&token=synthetic-smoke-token")" = 200 ]
+verify_candidate() {
+  docker exec "$container" bin/rails runner '
+    abort "Pending migrations" if ActiveRecord::Base.connection_pool.migration_context.needs_migration?
+    record = InstallationCandidate.find_by!(insales_id: 101, domain: "shop-a.example.test")
+    expected = Insales::Protocol.password("synthetic-smoke-token", "synthetic-smoke-secret")
+    abort "Credential persistence failed" unless record.api_password == expected
+    abort "Unexpected candidates" unless InstallationCandidate.count == 1
+  '
+}
+verify_candidate
+docker restart "$container" > /dev/null
+port=$(docker port "$container" 8765/tcp | sed 's/.*://')
+origin="http://127.0.0.1:$port"
+wait_for_health
+verify_candidate
+failed=0
+echo "Image contents, production entrypoint, migrations, host/HTTPS policy and restart: ok"

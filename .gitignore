@@ -9,3 +9,8 @@
 /coverage
 /config/master.key
 /config/credentials*.yml.enc
+
+/backups/
+/.agents/
+/.codex/
+/.cursor/

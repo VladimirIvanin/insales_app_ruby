@@ -3,8 +3,9 @@
 <dl>
   <dt><%= t("dashboard.shop") %></dt><dd><%= @context.shop.domain %></dd>
   <dt><%= t("dashboard.insales_id") %></dt><dd><%= @context.shop.insales_id %></dd>
-  <dt><%= t("dashboard.user_id") %></dt><dd><%= @context.session.user_id %></dd>
+  <dt><%= t("dashboard.callback_user_id") %></dt><dd><%= @context.session.callback_user_id %></dd>
 </dl>
+<p><%= t("dashboard.callback_identity") %></p>
 <%= button_to t("dashboard.probe"), probe_path(store_id: @context.shop.insales_id) %>
 <% if @account %>
   <h2><%= t("dashboard.result") %></h2>

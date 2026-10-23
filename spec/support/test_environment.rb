@@ -1,5 +1,5 @@
 ENV["RAILS_ENV"] = "test"
-ENV["TEST_DB"] = File.expand_path("../tmp/rspec-#{Process.pid}.sqlite3", __dir__)
+ENV["TEST_DB"] = File.expand_path("../../tmp/rspec-#{Process.pid}.sqlite3", __dir__)
 {
   "INSALES_APP_ID" => "test-app", "INSALES_APP_SECRET" => "test-app-secret",
   "APP_BASE_URL" => "https://app.example.test", "ALLOWED_SHOPS" => "shop-a.example.test,shop-b.example.test",
