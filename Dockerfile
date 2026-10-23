@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM ruby:4.0.8-slim-trixie AS ruby
-RUN apt-get update && apt-get install --no-install-recommends -y build-essential libyaml-dev libsqlite3-dev git && rm -rf /var/lib/apt/lists/*
+FROM ruby:4.0.8-alpine3.24 AS ruby
+RUN apk add --no-cache build-base yaml-dev sqlite-dev git
 RUN gem install bundler -v 4.0.23 --no-document
 ENV BUNDLE_PATH=/usr/local/bundle
 WORKDIR /app
@@ -11,7 +11,7 @@ RUN bundle install
 RUN json_gem="$(bundle exec ruby -e 'print Gem::Specification.find_by_name("json").cache_file')" \
     && gem install --local "$json_gem" --install-dir /usr/local/bundle --no-document
 
-FROM ruby:4.0.8-slim-trixie AS runtime
+FROM ruby:4.0.8-alpine3.24 AS runtime
 ENV BUNDLE_PATH=/usr/local/bundle
 COPY --from=gems /usr/local/bundle /usr/local/bundle
 RUN <<'SHELL'
@@ -27,7 +27,7 @@ end
   end
 end
 RUBY
-useradd --create-home --uid 1000 app
+addgroup -S -g 1000 app && adduser -S -D -u 1000 -G app -h /home/app app
 SHELL
 WORKDIR /app
 COPY --chown=app:app . .
@@ -39,7 +39,7 @@ ENTRYPOINT ["bin/docker-entrypoint"]
 CMD ["bin/rails", "server", "-b", "0.0.0.0", "-p", "8765"]
 
 FROM gems AS test
-RUN useradd --create-home --uid 1000 app
+RUN addgroup -S -g 1000 app && adduser -S -D -u 1000 -G app -h /home/app app
 COPY --from=runtime --chown=app:app /app /app
 USER app
 ENTRYPOINT ["bin/docker-entrypoint"]
