@@ -18,5 +18,14 @@ services:
       timeout: 5s
       start_period: 30s
       retries: 3
+  checks:
+    build:
+      context: .
+      target: test
+    profiles: [tools]
+    environment:
+      RAILS_ENV: test
+    command: [bin/check]
+    init: true
 volumes:
   app_data:

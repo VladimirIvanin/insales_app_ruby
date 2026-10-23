@@ -15,7 +15,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
-docker run --rm "$image" ruby -e '
+docker run --rm "$image" ruby -rbundler -rjson -e '
+  lock = Bundler::LockfileParser.new(File.read("/app/Gemfile.lock"))
+  expected = lock.specs.find { |spec| spec.name == "json" }.version.to_s
+  abort "Unbundled JSON differs from lock: #{JSON::VERSION} != #{expected}" unless JSON::VERSION == expected
+  abort "Default JSON still installed" if Gem::Specification.any? { |spec| spec.name == "json" && spec.default_gem? }
+  abort "Git found in runtime" if File.executable?("/usr/bin/git")
   %w[.agents .codex .cursor].each do |directory|
     abort "Local tooling found in image: #{directory}" if File.exist?(File.join("/app", directory))
   end

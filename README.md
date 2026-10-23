@@ -346,16 +346,22 @@ client.update_product(456, { "title" => "Новое название" })
 Автономный набор не требует `.env`, credentials или исходников InSales:
 
 ```sh
-docker compose build
-docker compose run --rm -e RAILS_ENV=test app bin/check
+docker compose build checks
+docker compose run --rm checks
 ```
+
+Сервис `checks` собирает Docker target `test`: в нём есть Git для обновления
+базы advisories. Обычный образ `app` не содержит Git и его дополнительных
+зависимостей. Для `bin/check` без Docker нужен установленный Git.
+JSON устанавливается из `Gemfile.lock` и доступен также обычному Ruby без Bundler.
+В рабочем образе старые Ruby-файлы и native extensions удаляются вместе с default gem.
 
 `bin/check` выполняет RSpec, Zeitwerk, RuboCop, Brakeman и аудит зависимостей.
 `bin/check` сохраняет RSpec seed и результаты в `tmp/check/rspec.json`.
 Последний шаг использует сеть для обновления базы уязвимостей. Отдельно тесты:
 
 ```sh
-docker compose run --rm -e RAILS_ENV=test app bundle exec rspec
+docker compose run --rm checks bundle exec rspec
 ```
 
 Каждый запуск RSpec создаёт собственную временную SQLite. Симулятор обслуживает
@@ -380,9 +386,13 @@ CI запускается на push/PR, вручную и раз в неделю
 `bundler-audit check --update` и сканирование финального образа Trivy выполняются
 независимыми jobs. Trivy проверяет OS/library packages и отклоняет HIGH/CRITICAL,
 включая ещё не исправленные уязвимости; исключения по умолчанию не заданы.
-Ручное копирование Ruby/native binaries между stages может ограничивать полноту
-обнаружения пакетов сканером. Seed, журналы ошибок и JSON-отчёт Trivy сохраняются
-на 14 дней. Сборка тестов специально добавляет локальные markers в контекст,
+Рабочий образ использует официальный Ruby runtime; gems копируются из build stage.
+Сканирование пакетов не доказывает отсутствие всех уязвимостей Ruby/native binaries.
+Seed, журналы ошибок и JSON-отчёт Trivy сохраняются
+на 14 дней. Список найденных CVE также выводится в лог image-audit.
+Наличие HIGH/CRITICAL без выпущенного исправления оставляет job красным;
+обновление сканера само по себе эти пакеты не исправляет. Сборка тестов специально
+добавляет локальные markers в контекст,
 чтобы проверка исключений работала и в чистом checkout.
 Dependabot настроен для bundler, Docker и GitHub Actions. Alerts/security updates
 требуют настройки самого GitHub-репозитория; наличие workflow их не включает.
