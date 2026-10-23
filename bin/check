@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+bundle exec rspec
+RAILS_ENV=test ruby -r ./spec/support/test_environment.rb bin/rails zeitwerk:check
+bundle exec rubocop
+bundle exec brakeman --no-pager
+bundle exec bundler-audit check --update

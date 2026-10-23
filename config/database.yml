@@ -1,0 +1,17 @@
+default: &default
+  adapter: sqlite3
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS", 3) %>
+  timeout: 5000
+  transaction_mode: immediate
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("APP_DB", "storage/development.sqlite3") %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch("TEST_DB", "storage/test.sqlite3") %>
+
+production:
+  <<: *default
+  database: <%= ENV.fetch("APP_DB", "storage/production.sqlite3") %>

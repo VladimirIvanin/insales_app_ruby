@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      APP_DB: /app/storage/app.sqlite3
+      PORT: "8765"
+    ports:
+      - "127.0.0.1:${PORT:-8765}:8765"
+    volumes:
+      - app_data:/app/storage
+    init: true
+    healthcheck:
+      test: ["CMD", "ruby", "-rnet/http", "-e", "exit(Net::HTTP.get_response(URI('http://127.0.0.1:8765/healthz')).code == '200' ? 0 : 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+volumes:
+  app_data:

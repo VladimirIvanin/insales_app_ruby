@@ -1,0 +1,14 @@
+<h1><%= t("app.title") %></h1>
+<p><%= t("dashboard.browser_scope") %></p>
+<dl>
+  <dt><%= t("dashboard.shop") %></dt><dd><%= @context.shop.domain %></dd>
+  <dt><%= t("dashboard.insales_id") %></dt><dd><%= @context.shop.insales_id %></dd>
+  <dt><%= t("dashboard.user_id") %></dt><dd><%= @context.session.user_id %></dd>
+</dl>
+<%= button_to t("dashboard.probe"), probe_path %>
+<% if @account %>
+  <h2><%= t("dashboard.result") %></h2>
+  <pre><%= JSON.pretty_generate(@account.data) %></pre>
+  <p><%= t("dashboard.usage") %>: <%= @account.usage_limit %></p>
+<% end %>
+<%= button_to t("dashboard.logout"), logout_path %>

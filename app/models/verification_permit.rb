@@ -1,0 +1,2 @@
+class VerificationPermit < ApplicationRecord
+end

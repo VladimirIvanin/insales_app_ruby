@@ -1,0 +1,49 @@
+{
+  "install": {
+    "token": "demo-install-token",
+    "secret": "demo-app-secret",
+    "expected_password": "2b6479b65a8456e70c98779838646881"
+  },
+  "autologin": {
+    "nonce": "demo-login-nonce",
+    "email": "user@example.invalid",
+    "name": "Тестовый партнёр",
+    "user_id": "42",
+    "email_confirmed": "false",
+    "expected_token": "9698ec8c5a26793b2ba9b5e3c432b888",
+    "expected_token2": "42aaf55849b301db402cbdf7b095d342",
+    "expected_token3": "0f73f440da4b86d8be62f3e19b57c77e"
+  },
+  "additional_autologin": [
+    {
+      "nonce": "demo-login-nonce",
+      "email": "user@example.invalid",
+      "name": "",
+      "user_id": "42",
+      "email_confirmed": "true",
+      "expected_token": "9698ec8c5a26793b2ba9b5e3c432b888",
+      "expected_token2": "2be115620631478c021fecccd90d69a4",
+      "expected_token3": "f1879127214a4a51cef450ed124a4c71"
+    },
+    {
+      "nonce": "demo-login-nonce",
+      "email": "user@example.invalid",
+      "name": "Тестовый партнёр",
+      "user_id": "42",
+      "email_confirmed": "true",
+      "expected_token": "9698ec8c5a26793b2ba9b5e3c432b888",
+      "expected_token2": "42aaf55849b301db402cbdf7b095d342",
+      "expected_token3": "9d8f6f8d6ba6d93e726a5531d2954a54"
+    },
+    {
+      "nonce": "demo-login-nonce",
+      "email": "user@example.invalid",
+      "name": "",
+      "user_id": "42",
+      "email_confirmed": "false",
+      "expected_token": "9698ec8c5a26793b2ba9b5e3c432b888",
+      "expected_token2": "2be115620631478c021fecccd90d69a4",
+      "expected_token3": "54a13d76f93d8e35384c598d491937b5"
+    }
+  ]
+}

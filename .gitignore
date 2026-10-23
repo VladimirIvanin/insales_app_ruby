@@ -1,0 +1,11 @@
+/.env
+/.env.*
+!/.env.example
+/.bundle
+/vendor
+/storage/*
+/log/*
+/tmp/*
+/coverage
+/config/master.key
+/config/credentials*.yml.enc
