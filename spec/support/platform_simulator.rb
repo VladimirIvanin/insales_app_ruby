@@ -5,15 +5,17 @@ require "digest"
 
 class PlatformSimulator
   attr_reader :url, :requests, :server
-  attr_accessor :account_status, :account_body, :usage, :update_status, :delay, :truncate, :raw_account_body, :error_body
+  attr_accessor :account_status, :account_body, :usage, :update_status, :delay, :truncate, :raw_account_body, :error_body, :retry_after
 
-  def initialize(id: 101, token: "install-a")
+  def initialize(id: 101, token: "install-a", user_email: "user@example.invalid", email_confirmed: "true")
     @id = id
+    @login_fields = { "user_email" => user_email, "user_name" => "Тестовый сотрудник", "user_id" => "42", "email_confirmed" => email_confirmed }
     @requests = Queue.new
     @usage = "1/300"
     @account_status = 200
     @update_status = 200
     @delay = 0
+    @retry_after = "1"
     @account_body = { "id" => id, "title" => "Тестовый магазин", "extra" => { "enabled" => true } }
     rotate(token)
     @server = Puma::Server.new(method(:call), nil, min_threads: 0, max_threads: 4)
@@ -57,7 +59,7 @@ class PlatformSimulator
       return login(request)
     end
     if request.path == "/admin/account.json" && (@account_status == 429 || @account_status >= 500)
-      return [ @account_status, { "retry-after" => "1" }, [ @error_body || "" ] ]
+      return [ @account_status, { "retry-after" => @retry_after }, [ @error_body || "" ] ]
     end
     expected = "Basic #{Base64.strict_encode64("test-app:#{@password}")}"
     return [ 401, {}, [ "Unauthorized" ] ] unless env["HTTP_AUTHORIZATION"] == expected
@@ -97,11 +99,11 @@ class PlatformSimulator
 
   def login(request)
     nonce = request.params.fetch("token")
-    fields = { "user_email" => "user@example.invalid", "user_name" => "Тестовый сотрудник", "user_id" => "42", "email_confirmed" => "true" }
+    fields = @login_fields
     signature = Digest::MD5.hexdigest(nonce + fields.values.join + @password)
     callback = URI(request.params.fetch("login"))
     return [ 422, {}, [ "Invalid callback host" ] ] unless callback.host == "app.example.test"
-    callback.query = URI.encode_www_form(fields.merge("token3" => signature))
+    callback.query = URI.encode_www_form(URI.decode_www_form(callback.query.to_s).to_h.merge(fields).merge("token3" => signature))
     [ 302, { "location" => callback.to_s }, [] ]
   end
 

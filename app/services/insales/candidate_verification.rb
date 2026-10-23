@@ -24,7 +24,9 @@ module Insales
         account = @client_factory.call(candidate.domain, candidate.api_password).account(timeout: timeout).data
         account.fetch("id") == candidate.insales_id ? :valid : :invalid
       rescue ApiError => error
-        [ 401, 403 ].include?(error.status) ? :invalid : :unavailable
+        return :invalid if [ 401, 403 ].include?(error.status)
+        VerificationBudget.pause(candidate.domain, error.retry_after)
+        :unavailable
       rescue TransportError, ResourceError
         :unavailable
       end

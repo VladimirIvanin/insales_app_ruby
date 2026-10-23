@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_23_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_23_020000) do
   create_table "app_sessions", force: :cascade do |t|
     t.integer "shop_id", null: false
     t.bigint "generation", null: false
@@ -75,6 +75,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_010000) do
     t.string "domain", null: false
     t.datetime "window_started_at", null: false
     t.integer "attempts", default: 0, null: false
+    t.datetime "retry_until"
     t.index ["domain"], name: "index_verification_budgets_on_domain", unique: true
   end
 

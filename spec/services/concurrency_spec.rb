@@ -131,7 +131,7 @@ RSpec.describe "Конкурентные callbacks" do
     service.install(**identity, token: "install-a")
     result = service.begin_login(**identity, browser_token: "browser")
     reply = Net::HTTP.get_response(URI(platform.url + URI(result.redirect_url).request_uri))
-    fields = URI.decode_www_form(URI(reply["location"]).query).to_h.symbolize_keys
+    fields = URI.decode_www_form(URI(reply["location"]).query).to_h.except("flow").symbolize_keys
     allow_any_instance_of(AppSession).to receive(:save!).and_raise(ActiveRecord::RecordNotSaved, "simulated failure")
 
     expect do
@@ -185,7 +185,7 @@ RSpec.describe "Конкурентные callbacks" do
     result = service.begin_login(**identity, browser_token: "browser")
     callback = URI(platform.url + URI(result.redirect_url).request_uri)
     reply = Net::HTTP.get_response(callback)
-    fields = URI.decode_www_form(URI(reply["location"]).query).to_h.symbolize_keys
+    fields = URI.decode_www_form(URI(reply["location"]).query).to_h.except("flow").symbolize_keys
     ready, go = Queue.new, Queue.new
     threads = 2.times.map do
       Thread.new do

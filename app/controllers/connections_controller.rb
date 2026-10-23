@@ -15,20 +15,31 @@ class ConnectionsController < ApplicationController
     result = lifecycle.begin_login(shop: params.expect(:shop), insales_id: params.expect(:insales_id),
       browser_token: session[:browser_token])
     session[:challenge_id] = result.challenge.id
+    cookies.encrypted["login_#{result.challenge.id}"] = {
+      value: session[:browser_token], httponly: true, same_site: :lax,
+      secure: request.ssl?, expires: 5.minutes.from_now
+    }
     redirect_to result.redirect_url, allow_other_host: true
   end
 
   def callback
-    unless session[:challenge_id] && session[:browser_token]
+    flow = params[:flow].presence
+    if flow && !flow.match?(/\A[1-9]\d{0,18}\z/)
       raise Insales::Lifecycle::Failure.new(:invalid_challenge, 403)
     end
-    grant = lifecycle.complete_login(challenge_id: session[:challenge_id], browser_token: session[:browser_token],
-      token3: params.expect(:token3), user_email: params.expect(:user_email), user_name: params.fetch(:user_name, ""),
+    challenge_id = flow || session[:challenge_id]
+    browser_token = flow ? cookies.encrypted["login_#{flow}"] : session[:browser_token]
+    unless challenge_id && browser_token
+      raise Insales::Lifecycle::Failure.new(:invalid_challenge, 403)
+    end
+    grant = lifecycle.complete_login(challenge_id: challenge_id, browser_token: browser_token,
+      token3: params.expect(:token3), user_email: params.fetch(:user_email) || "", user_name: params.fetch(:user_name, ""),
       user_id: params.expect(:user_id), email_confirmed: params.expect(:email_confirmed))
+    cookies.delete("login_#{flow}") if flow
     lifecycle.logout(session[:auth_token])
     reset_session
     session[:auth_token] = grant.token
-    redirect_to root_path, status: :see_other
+    redirect_to root_path(store_id: grant.session.shop.insales_id), status: :see_other
   end
 
   def uninstall

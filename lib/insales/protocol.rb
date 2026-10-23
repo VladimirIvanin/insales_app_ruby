@@ -30,7 +30,7 @@ module Insales
       values = [ user_email, user_name, user_id, email_confirmed ]
       raise InvalidInput, "Invalid user fields" unless values.all? { |value| value.is_a?(String) }
       raise InvalidInput, "Invalid confirmation flag" unless %w[true false].include?(email_confirmed)
-      raise InvalidInput, "Invalid user fields" if user_email.empty? || [ user_email, user_name ].any? { |value| value.bytesize > 1024 }
+      raise InvalidInput, "Invalid user fields" if [ user_email, user_name ].any? { |value| value.bytesize > 1024 }
       identifier(user_id)
     end
 

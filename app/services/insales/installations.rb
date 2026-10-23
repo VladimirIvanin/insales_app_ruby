@@ -71,6 +71,7 @@ module Insales
           store = Shop.lock.find_or_create_by!(insales_id: candidate.insales_id)
           next if candidate.id <= store.generation
           former_owner = Shop.lock.where(domain: candidate.domain).where.not(id: store.id).first
+          next if former_owner && former_owner.generation >= candidate.id
           retire(former_owner) if former_owner
           retire(store) if store.active?
           store.revoke_sessions!

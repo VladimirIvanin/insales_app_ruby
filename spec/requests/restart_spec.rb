@@ -16,7 +16,7 @@ RSpec.describe "Перезапуск процесса", type: :request do
       service = Insales::Lifecycle.new(client_factory: factory)
       login = service.begin_login(shop: "shop-a.example.test", insales_id: 101, browser_token: "restarted-browser")
       reply = Net::HTTP.get_response(URI(ENV.fetch("SIMULATOR_URL") + URI(login.redirect_url).request_uri))
-      fields = URI.decode_www_form(URI(reply["location"]).query).to_h.symbolize_keys
+      fields = URI.decode_www_form(URI(reply["location"]).query).to_h.except("flow").symbolize_keys
       grant = service.complete_login(**fields, challenge_id: login.challenge.id, browser_token: "restarted-browser")
       context = service.authenticate(grant.token)
       puts JSON.generate(shop_id: context.shop.insales_id, user_id: context.session.user_id)

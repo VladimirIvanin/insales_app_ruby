@@ -23,7 +23,7 @@ class ApplicationController < ActionController::Base
     end
 
     def require_session
-      @context = lifecycle.authenticate(session[:auth_token])
+      @context ||= lifecycle.authenticate(session[:auth_token])
       return if @context
       reset_session
       render "shared/error", locals: { message: I18n.t("errors.session_required") }, status: :unauthorized

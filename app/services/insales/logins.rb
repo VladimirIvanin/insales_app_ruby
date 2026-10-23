@@ -15,7 +15,7 @@ module Insales
         challenge = store.login_challenges.create!(generation: store.generation,
           nonce: SecureRandom.hex(32), browser_digest: Digest::SHA256.hexdigest(browser_token),
           expires_at: Lifecycle::CHALLENGE_TTL.from_now)
-        query = URI.encode_www_form(token: challenge.nonce, login: @settings.callback_url)
+        query = URI.encode_www_form(token: challenge.nonce, login: "#{@settings.callback_url}?#{URI.encode_www_form(flow: challenge.id)}")
         url = "https://#{store.domain}/admin/applications/#{@settings.app_id}/login?#{query}"
         Lifecycle::Login.new(challenge: challenge, redirect_url: url)
       end

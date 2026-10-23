@@ -1,4 +1,5 @@
 class DashboardController < ApplicationController
+  prepend_before_action :check_tab_context
   before_action :require_session, except: :logout
 
   def index
@@ -6,7 +7,7 @@ class DashboardController < ApplicationController
 
   def probe
     session[:probe_requested] = true
-    redirect_to account_path, status: :see_other
+    redirect_to account_path(store_id: @context.shop.insales_id), status: :see_other
   end
 
   def account
@@ -23,4 +24,13 @@ class DashboardController < ApplicationController
     reset_session
     render "shared/message", locals: { message: I18n.t("dashboard.logged_out") }
   end
+
+  private
+    def check_tab_context
+      return unless params[:store_id]
+      @context = lifecycle.authenticate(session[:auth_token])
+      if @context && params[:store_id].to_s != @context.shop.insales_id.to_s
+        render "shared/error", locals: { message: I18n.t("errors.shop_changed") }, status: :conflict
+      end
+    end
 end

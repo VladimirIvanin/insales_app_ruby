@@ -1,3 +1,4 @@
+Rails.application.config.x.insales_client_factory = nil
 settings = Insales::Settings.new(ENV)
 Rails.application.config.x.insales = settings
 Rails.application.config.active_record.encryption.primary_key = settings.primary_key

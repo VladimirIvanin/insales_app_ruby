@@ -5,10 +5,10 @@
   <dt><%= t("dashboard.insales_id") %></dt><dd><%= @context.shop.insales_id %></dd>
   <dt><%= t("dashboard.user_id") %></dt><dd><%= @context.session.user_id %></dd>
 </dl>
-<%= button_to t("dashboard.probe"), probe_path %>
+<%= button_to t("dashboard.probe"), probe_path(store_id: @context.shop.insales_id) %>
 <% if @account %>
   <h2><%= t("dashboard.result") %></h2>
   <pre><%= JSON.pretty_generate(@account.data) %></pre>
   <p><%= t("dashboard.usage") %>: <%= @account.usage_limit %></p>
 <% end %>
-<%= button_to t("dashboard.logout"), logout_path %>
+<%= button_to t("dashboard.logout"), logout_path(store_id: @context.shop.insales_id) %>
