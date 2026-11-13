@@ -8,7 +8,7 @@ gem "net-http", "~> 0.10.0"
 gem "dotenv-rails", "~> 3.2"
 
 group :development, :test do
-  gem "rspec-rails", "~> 8.0.4"
+  gem "rspec-rails", "~> 8.1.0"
   gem "rubocop-rails-omakase", "~> 1.1", require: false
   gem "brakeman", "~> 8.1", require: false
   gem "bundler-audit", "~> 0.9", require: false
