@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM ruby:4.0.8-alpine3.24 AS base
+FROM ruby:4.0.9-alpine3.24 AS base
 RUN apk add --no-cache tzdata
 
 FROM base AS ruby
