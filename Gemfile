@@ -3,7 +3,7 @@ ruby "4.0.8"
 
 gem "rails", "~> 8.1.4"
 gem "sqlite3", "~> 2.10.1"
-gem "puma", "~> 8.0.2"
+gem "puma", "~> 8.1.2"
 gem "net-http", "~> 0.10.0"
 gem "dotenv-rails", "~> 3.2"
 
